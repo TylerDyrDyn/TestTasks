@@ -1,8 +1,7 @@
+
 <?php
-// Проверяем, что запрос пришел методом POST
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Получаем данные из формы
-    $license_plate = $_POST['number_'] ?? '';
+    $license_plate = $_POST['number'] ?? '';
     $vehicle = $_POST['vehicle'] ?? '';
     $arrival_date = $_POST['arrival'] ?? '';
     $driver_name = $_POST['driverName'] ?? '';
@@ -10,6 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $passport_number = $_POST['passport_number'] ?? '';
     $issued_by = $_POST['issued_by'] ?? '';
     $issue_date = $_POST['issue_date'] ?? '';
+
+    // перед дальнейшим использованием данных должна проходить проверка для защиты от SQL-инъекций и так далее
 
     // Валидация данных
     $errors = [];
@@ -31,14 +32,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors[] = "Не указано ФИО водителя";
     }
 
-    // Если есть ошибки, возвращаем их на страницу формы
     if (!empty($errors)) {
         header('Content-Type: application/json');
         echo json_encode(['success' => false, 'errors' => $errors]);
         exit;
     }
 
-    // Формируем строку с данными
+    // Абстрактная запись данных в базу
     $data = sprintf(
         "Дата записи: %s\nГос-номер: %s\nТранспортное средство: %s\nДата прибытия: %s\nВодитель: %s\n" .
         "Паспорт: %s %s\nКем выдан: %s\nКогда выдан: %s\n\n",
@@ -53,12 +53,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $issue_date
     );
 
-    // Путь к файлу (измените на нужный)
     $file = 'vehicle_records.txt';
 
-    // Пытаемся записать данные в файл
     if (file_put_contents($file, $data, FILE_APPEND | LOCK_EX) !== false) {
-        // Очищаем localStorage после успешной записи
         header('Content-Type: application/json');
         echo json_encode(['success' => true, 'message' => 'Данные успешно сохранены']);
     } else {
@@ -66,7 +63,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo json_encode(['success' => false, 'errors' => ['Ошибка при сохранении данных']]);
     }
 } else {
-    // Если запрос пришел не методом POST
     header('HTTP/1.1 405 Method Not Allowed');
     echo 'Метод не разрешен';
 }

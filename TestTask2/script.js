@@ -1,205 +1,210 @@
-// constants.js
-const CONSTANTS = {
-    VALID_PLATE_CHARS: 'АВЕКМНОРСТУХ',
-    PLATE_LENGTH: 6,
-    PASSPORT_SERIES_LENGTH: 4,
-    PASSPORT_NUMBER_LENGTH: 6,
-    PLATE_REGEX: /^[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}$/u,
-};
 
-// validators.js
-class FormValidator {
-    static validatePlateNumber(number) {
-        return CONSTANTS.PLATE_REGEX.test(number);
+// Обработчик локального хранилища
+class FormStorage {
+    static save(id, value) {
+        localStorage.setItem(id, value);
     }
 
-    static validatePassportSeries(series) {
-        return /^\d{4}$/.test(series);
+    static load(id) {
+        return localStorage.getItem(id);
     }
 
-    static validatePassportNumber(number) {
-        return /^\d{6}$/.test(number);
-    }
-
-    static validateRequiredField(value) {
-        return value.trim().length > 0;
+    static clear() {
+        localStorage.clear();
     }
 }
 
-// form-handler.js
-class TransportFormHandler {
+// Обработчик вводимых данных
+class FormValidator {
+    static validateNumber(number) {
+        return number && number.length === 6;
+    }
+
+    static validatePassportSeries(series) {
+        return series && series.length === 4;
+    }
+
+    static validatePassportNumber(number) {
+        return number && number.length === 6;
+    }
+
+    static validateRequired(value) {
+        return value && value.trim().length > 0;
+    }
+
+    static getErrorMessages(formData) {
+        const errors = [];
+        
+        if (!this.validateNumber(formData.number)) {
+            errors.push("Гос-номер должен состоять из 6 символов.");
+        }
+        
+        if (!this.validatePassportSeries(formData.passportSeries)) {
+            errors.push("Серия паспорта должна состоять из 4 цифр.");
+        }
+        
+        if (!this.validatePassportNumber(formData.passportNumber)) {
+            errors.push("Номер паспорта должен состоять из 6 цифр.");
+        }
+        
+        if (!this.validateRequired(formData.arrival)) {
+            errors.push("Укажите ориентировочную дату прибытия.");
+        }
+        
+        if (!this.validateRequired(formData.driverName)) {
+            errors.push("Введите ФИО водителя.");
+        }
+        
+        if (!this.validateRequired(formData.givenBy)) {
+            errors.push("Укажите, кем был выдан паспорт.");
+        }
+        
+        if (!this.validateRequired(formData.givenDate)) {
+            errors.push("Укажите дату выдачи паспорта.");
+        }
+
+        return errors;
+    }
+}
+// Форматировщик вводимых данных
+class InputFormatter {
+    static formatVehicleNumber(input) {
+        let value = input.toUpperCase();
+        let formatted = "";
+        const validLetters = "АВЕКМНОРСТУХ";
+
+        for (let i = 0; i < value.length; i++) {
+            if (i === 0) {
+                if (validLetters.includes(value[i])) {
+                    formatted += value[i];
+                }
+            } else if (i >= 1 && i <= 3) {
+                if (/\d/.test(value[i])) {
+                    formatted += value[i];
+                }
+            } else if (i >= 4 && i <= 5) {
+                if (validLetters.includes(value[i])) {
+                    formatted += value[i];
+                }
+            }
+        }
+        return formatted;
+    }
+
+    static formatNumbers(input, maxLength) {
+        return input.replace(/\D/g, '').substring(0, maxLength);
+    }
+}
+// Основной класс работы с формой
+class TransportForm {
     constructor(formId) {
         this.form = document.getElementById(formId);
-        this.errorContainer = document.getElementById('error-messages');
+        this.errorContainer = document.getElementById("error-messages");
         this.setupEventListeners();
-        this.restoreFromStorage();
+        this.loadSavedData();
     }
 
     setupEventListeners() {
-        // Input formatting
-        this.setupPlateNumberFormatting();
-        this.setupPassportFormatting();
-        
-        // Form events
-        this.form.addEventListener('submit', this.handleSubmit.bind(this));
-        document.querySelector('.cancel-button')
-            .addEventListener('click', this.handleCancel.bind(this));
-            
-        // Auto-save
         this.form.querySelectorAll('input').forEach(input => {
-            input.addEventListener('input', () => this.saveToStorage(input.id));
+            input.addEventListener('input', () => this.handleInput(input));
         });
+
+        const numberInput = this.form.querySelector("#number");
+        numberInput.addEventListener("input", (e) => {
+            e.target.value = InputFormatter.formatVehicleNumber(e.target.value);
+            FormStorage.save(e.target.id, e.target.value);
+        });
+
+        const seriesInput = this.form.querySelector("#passport-series");
+        seriesInput.addEventListener("input", (e) => {
+            e.target.value = InputFormatter.formatNumbers(e.target.value, 4);
+            FormStorage.save(e.target.id, e.target.value);
+        });
+
+        const numberPassportInput = this.form.querySelector("#passport-number");
+        numberPassportInput.addEventListener("input", (e) => {
+            e.target.value = InputFormatter.formatNumbers(e.target.value, 6);
+            FormStorage.save(e.target.id, e.target.value);
+        });
+
+        this.form.addEventListener("submit", (e) => this.handleSubmit(e));
+
+        document.querySelector('.cancel-button').addEventListener('click', () => this.handleCancel());
     }
 
-    setupPlateNumberFormatting() {
-        const plateInput = document.getElementById('number');
-        plateInput.addEventListener('input', (event) => {
-            let input = event.target.value.toUpperCase();
-            let formatted = '';
+    handleInput(input) {
+        FormStorage.save(input.id, input.value);
+    }
 
-            for (let i = 0; i < input.length && i < CONSTANTS.PLATE_LENGTH; i++) {
-                if ([0, 4, 5].includes(i)) {
-                    if (CONSTANTS.VALID_PLATE_CHARS.includes(input[i])) {
-                        formatted += input[i];
-                    }
-                } else if (i >= 1 && i <= 3) {
-                    if (/\d/.test(input[i])) {
-                        formatted += input[i];
-                    }
-                }
+    loadSavedData() {
+        this.form.querySelectorAll('input').forEach(input => {
+            const savedValue = FormStorage.load(input.id);
+            if (savedValue) {
+                input.value = savedValue;
             }
-            event.target.value = formatted;
-            this.saveToStorage('number');
-        });
-    }
-
-    setupPassportFormatting() {
-        const seriesInput = document.getElementById('passport-series');
-        const numberInput = document.getElementById('passport-number');
-
-        seriesInput.addEventListener('input', (event) => {
-            event.target.value = event.target.value
-                .replace(/\D/g, '')
-                .substring(0, CONSTANTS.PASSPORT_SERIES_LENGTH);
-            this.saveToStorage('passport-series');
-        });
-
-        numberInput.addEventListener('input', (event) => {
-            event.target.value = event.target.value
-                .replace(/\D/g, '')
-                .substring(0, CONSTANTS.PASSPORT_NUMBER_LENGTH);
-            this.saveToStorage('passport-number');
         });
     }
 
     async handleSubmit(event) {
         event.preventDefault();
-        const errors = this.validateForm();
         
+        const formData = {
+            number: this.form.querySelector("#number").value,
+            vehicle: this.form.querySelector("#vehicle").value,
+            arrival: this.form.querySelector("#arrival").value,
+            driverName: this.form.querySelector("#driverName").value,
+            passportSeries: this.form.querySelector("#passport-series").value,
+            passportNumber: this.form.querySelector("#passport-number").value,
+            givenBy: this.form.querySelector("#givenBy").value,
+            givenDate: this.form.querySelector("#givenDate").value
+        };
+
+        const errors = FormValidator.getErrorMessages(formData);
+
         if (errors.length > 0) {
             this.showErrors(errors);
             return;
         }
 
         try {
-            const response = await this.submitForm();
-            if (response.success) {
-                this.handleSuccess();
+            const response = await fetch('process.php', {
+                method: 'POST',
+                body: new FormData(this.form)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                FormStorage.clear();
+                this.form.reset();
+                this.showSuccess("Данные успешно сохранены");
             } else {
-                this.showErrors(response.errors);
+                this.showErrors(data.errors);
             }
         } catch (error) {
-            this.showErrors(['Произошла ошибка при отправке данных']);
-            console.error('Form submission error:', error);
+            this.showErrors(["Произошла ошибка при отправке данных"]);
         }
-    }
-
-    validateForm() {
-        const errors = [];
-        const formData = new FormData(this.form);
-        
-        if (!FormValidator.validatePlateNumber(formData.get('number_'))) {
-            errors.push('Гос-номер должен состоять из 6 символов в формате А000АА');
-        }
-
-        if (!FormValidator.validatePassportSeries(formData.get('passport_series'))) {
-            errors.push('Серия паспорта должна состоять из 4 цифр');
-        }
-
-        // Добавляем остальные проверки
-        const requiredFields = {
-            'arrival': 'дату прибытия',
-            'driverName': 'ФИО водителя',
-            'givenBy': 'кем выдан паспорт',
-            'givenDate': 'дату выдачи паспорта'
-        };
-
-        for (const [field, description] of Object.entries(requiredFields)) {
-            if (!FormValidator.validateRequiredField(formData.get(field))) {
-                errors.push(`Укажите ${description}`);
-            }
-        }
-
-        return errors;
-    }
-
-    async submitForm() {
-        const response = await fetch('process.php', {
-            method: 'POST',
-            body: new FormData(this.form),
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return await response.json();
-    }
-
-    handleSuccess() {
-        localStorage.clear();
-        this.form.reset();
-        this.showMessage('Данные успешно сохранены', 'success');
     }
 
     handleCancel() {
-        localStorage.clear();
+        FormStorage.clear();
         this.form.reset();
-        this.errorContainer.innerHTML = '';
+        this.clearErrors();
     }
 
     showErrors(errors) {
-        this.errorContainer.innerHTML = errors
-            .map(error => `<div class="error-message">${error}</div>`)
-            .join('');
+        this.errorContainer.innerHTML = errors.join("<br>");
     }
 
-    showMessage(message, type = 'error') {
-        const className = type === 'success' ? 'success-message' : 'error-message';
-        this.errorContainer.innerHTML = `<div class="${className}">${message}</div>`;
+    showSuccess(message) {
+        this.errorContainer.innerHTML = `<span style="color: green;">${message}</span>`;
     }
 
-    saveToStorage(id) {
-        const element = document.getElementById(id);
-        if (element) {
-            localStorage.setItem(id, element.value);
-        }
-    }
-
-    restoreFromStorage() {
-        this.form.querySelectorAll('input').forEach(input => {
-            const savedValue = localStorage.getItem(input.id);
-            if (savedValue) {
-                input.value = savedValue;
-            }
-        });
+    clearErrors() {
+        this.errorContainer.innerHTML = '';
     }
 }
 
-// Инициализация
 document.addEventListener('DOMContentLoaded', () => {
-    new TransportFormHandler('transportForm');
+    const transportForm = new TransportForm('transportForm');
 });

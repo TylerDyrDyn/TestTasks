@@ -16,34 +16,34 @@
             <form id="transportForm" action="process.php" method="POST">
                 <div id="error-messages" style="color: red;"></div>
                 <label for="number">Гос-номер</label>
-                <input id="number" name="number_" type="text" placeholder="Укажите гос-номер" required>
+                <input id="number" name="number" type="text" placeholder="Укажите гос-номер">
                 <label for="vehicle">Транспортное средство</label>
-                <input id="vehicle" name="vehicle" type="text" placeholder="Транспортное средство" required>
+                <input id="vehicle" name="vehicle" type="text" placeholder="Транспортное средство">
                 <label for="arrival">Ориентировочная дата прибытия к покупателю</label>
-                <input id="arrival" name="arrival" type="text" placeholder="Дата*" onfocus="(this.type='date')" onblur="(this.type='text')" required>
+                <input id="arrival" name="arrival" type="text" placeholder="Дата*" onfocus="(this.type='date')" onblur="(this.type='text')" >
 
                 <p>
                 <h4>Данные о водителе</h4>
                 </p>
 
                 <label for="driverName">ФИО</label>
-                <input id="driverName" name="driverName" type="text" placeholder="Укажите ФИО водителя" required>
+                <input id="driverName" name="driverName" type="text" placeholder="Укажите ФИО водителя">
 
                 <div class="passport-data">
                     <div>
                         <label for="passport-series">Серия</label>
-                        <input type="text" name="passport_series" id="passport-series"  placeholder="Серия" required>
+                        <input type="text" name="passport_series" id="passport-series"  placeholder="Серия">
                     </div>
                     <div>
                         <label for="passport-number">Номер</label>
-                        <input type="text" name="passport_number" id="passport-number" placeholder="Номер" required>
+                        <input type="text" name="passport_number" id="passport-number" placeholder="Номер" >
                     </div>
                 </div>
 
                 <label for="givenBy" >Кем выдан</label>
-                <input type="text" name="issued_by" id="givenBy"placeholder="Кем выдан" required>
+                <input type="text" name="issued_by" id="givenBy"placeholder="Кем выдан">
                 <label for="givenDate">Когда выдан</label>
-                <input type="date" name="issue_date" id="givenDate"  placeholder="Когда выдан" required>
+                <input type="text" name="issue_date" id="givenDate"  placeholder="Когда выдан">
                 <div class="buttons">
                     <button type="submit" class="submit-button">Отправить</button>
                     <button type="button" class="cancel-button">Отменить</button>

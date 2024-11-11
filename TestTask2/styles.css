@@ -2,16 +2,9 @@
     box-sizing: border-box;
     font-family: Arial, sans-serif;
 }
-
 body {
     background-color: #3a3a3a;
-    /*
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    */
+
 }
 
 .modal {
@@ -102,6 +95,7 @@ label
     color: black;
     border: 1px solid #ccc;
 }
+
 .submit-button, .cancel-button {
     padding: 10px 20px;
     border: none;
@@ -137,7 +131,6 @@ label
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Эффект при нажатии */
 .submit-button:active, .cancel-button:active {
     transform: translateY(1px);
     box-shadow: none;
