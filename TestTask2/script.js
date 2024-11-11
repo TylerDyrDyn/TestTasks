@@ -54,6 +54,10 @@ class FormValidator {
         if (!this.validateRequired(formData.driverName)) {
             errors.push("Введите ФИО водителя.");
         }
+
+        if (!this.validateRequired(formData.vehicle)) {
+            errors.push("Введите название транспортного средства.");
+        }
         
         if (!this.validateRequired(formData.givenBy)) {
             errors.push("Укажите, кем был выдан паспорт.");

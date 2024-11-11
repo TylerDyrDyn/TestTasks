@@ -5,10 +5,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $vehicle = $_POST['vehicle'] ?? '';
     $arrival_date = $_POST['arrival'] ?? '';
     $driver_name = $_POST['driverName'] ?? '';
-    $passport_series = $_POST['passport_series'] ?? '';
-    $passport_number = $_POST['passport_number'] ?? '';
-    $issued_by = $_POST['issued_by'] ?? '';
-    $issue_date = $_POST['issue_date'] ?? '';
+    $passport_series = $_POST['passportSeries'] ?? '';
+    $passport_number = $_POST['passportNumber'] ?? '';
+    $issued_by = $_POST['givenBy'] ?? '';
+    $issue_date = $_POST['givenDate'] ?? '';
 
     // перед дальнейшим использованием данных должна проходить проверка для защиты от SQL-инъекций и так далее
 
@@ -30,6 +30,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     if (empty($driver_name)) {
         $errors[] = "Не указано ФИО водителя";
+    }
+    if (empty($vehicle)) {
+        $errors[] = "Не указано транспортное средство";
     }
 
     if (!empty($errors)) {
